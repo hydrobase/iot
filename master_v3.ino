@@ -16,6 +16,20 @@ DHT dht(DHTPIN, DHTTYPE);
 
 /**********************************************************************************
  ***********************************************************************************
+ * Start Water Temp Set-Up
+ ***********************************************************************************
+ **********************************************************************************/
+#include <OneWire.h>
+int DS18S20_Pin = 4;
+OneWire ds(DS18S20_Pin);
+/***********************************************************************************
+ ***********************************************************************************
+ * End Water Temp Sensor Set-Up
+ ***********************************************************************************
+ ***********************************************************************************/
+
+/**********************************************************************************
+ ***********************************************************************************
  * Start Ethernet+PubNub Set-Up
  ***********************************************************************************
  **********************************************************************************/
@@ -51,7 +65,7 @@ void processActuatorInfo(aJsonObject *item)
     return;
   }
 
-  const static int pins[] = { 30, 31, 42, 43, 44, 45 };
+  const static int pins[] = { 30, 31, 32, 33, 34, 35 };
   const static int pins_n = 6;
   for (int i = 0; i < pins_n; i++) {
     char pinstr[3];
@@ -112,10 +126,10 @@ void dumpMessage(Stream &s, aJsonObject *msg)
 
 int light1 = 30;
 int light2 = 31;
-int waterTrigger = 42;
-int nutrientDoser = 43;
-int phUP = 44;
-int phDOWN = 45;
+int waterTrigger = 32;
+int nutrientDoser = 33;
+int phUP = 34;
+int phDOWN = 35;
 
 /***********************************************************************************
  ***********************************************************************************
@@ -243,8 +257,15 @@ void setup() {
   pinMode(light1, OUTPUT);
   pinMode(light2, OUTPUT);
   pinMode(waterTrigger, OUTPUT);
+  pinMode(nutrientDoser, OUTPUT);
+  pinMode(phUP, OUTPUT);
+  pinMode(phDOWN, OUTPUT);
   digitalWrite(light1, HIGH);
   digitalWrite(light2, HIGH);
+  digitalWrite(waterTrigger, HIGH);
+  digitalWrite(nutrientDoser, HIGH);
+  digitalWrite(phUP, HIGH);
+  digitalWrite(phDOWN, HIGH);
 }
 
 /**********************************************************************************
@@ -273,6 +294,8 @@ void loop() {
     Serial.println("Sensor overload");
   }
   /********** End Lux Sensor **********/
+
+  
   /********** Start Temp-Humid Sensor **********/
   int h = dht.readHumidity();
   int f = dht.readTemperature(true);
@@ -282,8 +305,10 @@ void loop() {
     Serial.println("Failed to read from DHT sensor!");
     return;
   }
-  
   /********** End Temp-Humid Sensor **********/
+
+  float waterTemp = getWaterTemp();
+  waterTemp = (waterTemp*1.8)+32.0;
 
   Ethernet.maintain();
 
@@ -300,7 +325,9 @@ void loop() {
   aJsonObject *humidityData = aJson.createItem(h);
   aJson.addItemToObject(msg, "humidity", humidityData);
   aJsonObject *tempData = aJson.createItem(f);
-  aJson.addItemToObject(msg, "temp", tempData);
+  aJson.addItemToObject(msg, "airTemp", tempData);
+  aJsonObject *watertempData = aJson.createItem(waterTemp);
+  aJson.addItemToObject(msg, "waterTemp", watertempData);
 
   tenticleChannel = 99;
   cmd = "r";
@@ -360,7 +387,6 @@ void loop() {
   dumpMessage(Serial, msg);
   aJson.deleteItem(msg);
 
-  delay(50);
 }
 
 
@@ -590,3 +616,55 @@ void clearIncomingBuffer() {          // "clears" the incoming soft-serial buffe
     sSerial.read();
   }
 }
+
+/*end of tenticle stuffems*/
+
+
+/*Start of waterTemp stuffems*/
+float getWaterTemp(){
+  //returns the temperature from one DS18S20 in DEG Celsius
+
+  byte data[12];
+  byte addr[8];
+
+  if ( !ds.search(addr)) {
+      //no more sensors on chain, reset search
+      ds.reset_search();
+      return -1000;
+  }
+
+  if ( OneWire::crc8( addr, 7) != addr[7]) {
+      Serial.println("CRC is not valid!");
+      return -1000;
+  }
+
+  if ( addr[0] != 0x10 && addr[0] != 0x28) {
+      Serial.print("Device is not recognized");
+      return -1000;
+  }
+
+  ds.reset();
+  ds.select(addr);
+  ds.write(0x44,1); // start conversion, with parasite power on at the end
+
+  byte present = ds.reset();
+  ds.select(addr);    
+  ds.write(0xBE); // Read Scratchpad
+
+  
+  for (int i = 0; i < 9; i++) { // we need 9 bytes
+    data[i] = ds.read();
+  }
+  
+  ds.reset_search();
+  
+  byte MSB = data[1];
+  byte LSB = data[0];
+
+  float tempRead = ((MSB << 8) | LSB); //using two's compliment
+  float TemperatureSum = tempRead / 16;
+  
+  return TemperatureSum;
+  
+}
+
