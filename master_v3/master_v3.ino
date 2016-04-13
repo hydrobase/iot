@@ -51,17 +51,17 @@ aJsonObject *createMessage()
   aJsonObject *msg = aJson.createObject();
 
   aJsonObject *sender = aJson.createObject();
-  aJson.addStringToObject(sender, "name", "Arduino--Mario");
+  aJson.addStringToObject(sender, "name", "Mario -- Arduino");
   aJson.addItemToObject(msg, "sender", sender);
   return msg;
 }
 
-/* Process message like: { "pwm": { "8": 0, "9": 128 } } */
+/* Process message like: { "Mario": { "30": 0, "31": 128 } } */
 void processActuatorInfo(aJsonObject *item)
 {
-  aJsonObject *actuators = aJson.getObjectItem(item, "actuators");
+  aJsonObject *actuators = aJson.getObjectItem(item, "Mario");
   if (!actuators) {
-    Serial.println("no pwm data");
+    Serial.println("not for me");
     return;
   }
 
