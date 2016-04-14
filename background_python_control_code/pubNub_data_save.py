@@ -3,7 +3,10 @@ import time
 from pubnub import Pubnub
 
 #Create + Open + Writer headers for CSV document
-dataFile = open('pubNub_data.csv', 'w')
+
+dataFile_name = str((time.localtime(time.time())).tm_mon)+'_'+str((time.localtime(time.time())).tm_mday)+'_'+str((time.localtime(time.time())).tm_hour)+'_'+str((time.localtime(time.time())).tm_min)+'pubNub_data.csv'
+print dataFile_name
+dataFile = open(dataFile_name, 'w')
 fieldnames = ['month', 'day', 'year', 'hour', 'min', 'sec', 'lux', 'humidity', 'airTemp', 'waterTemp', 'pH', 'EC', 'TDS', 'PS']
 writer = csv.DictWriter(dataFile, fieldnames=fieldnames)
 writer.writeheader()
@@ -65,7 +68,7 @@ def callback(message, channel):
                 ecData = str("EC: " + str(message[u'EC']))
                 ecData = ecData.split()
                 ecData = ecData[1].split(',')
-                dataFile = open('pubNub_data.csv', 'a')
+                dataFile = open(dataFile_name, 'a')
                 writer = csv.DictWriter(dataFile, fieldnames=fieldnames)
                 writer.writerow({
                     'month': (time.localtime(time.time())).tm_mon,
@@ -130,8 +133,8 @@ def publishLightsOff(channel):
     global lightOnSent
     global lightOffSent
     print pubnub.publish(channel=channel, message={"actuators": {"30": 0, "31": 0}})
-    waterOffSent = True
-    waterOnSent = False
+    lightOnSent = False
+    lightOffSent = True
 
 def error(message):
     print("ERROR : " + str(message))
