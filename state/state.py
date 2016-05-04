@@ -40,6 +40,28 @@ def actuator_pin(g, actuator=None):
     pin = g['actuators'][actuator]
     return pin
 
+def controls_dates(control):
+    """Get the control start and end dates
+
+    Parameters
+    ----------
+    control : dict
+        A control "object"
+
+    Returns
+    -------
+    start, end : datetime.date
+        Will return None if no dates set
+    """
+    def date(str_date):
+        return datetime.strptime(str_date, '%m/%d/%Y').date()
+    try:
+        start = control['dates']['start']
+        end = control['dates']['end']
+        return date(start), date(end)
+    except:
+        return None
+
 def controls_time(g):
     """Get the time-based control information
 
@@ -147,8 +169,10 @@ def payload(g):
     d_id = device_id(g)
     p = {d_id : {}}
     for c in controls:
-        actuator, unit, value = c['actuator'], c['unit'], c['value']
-        pin = actuator_pin(g, actuator)
-        on_off_value = time_based_on(unit, value) * 255
-        p[d_id][pin] = str(on_off_value)
+        start, end = controls_dates(c)
+        if start <= datetime.now().date() <= end:
+            actuator, unit, value = c['actuator'], c['unit'], c['value']
+            pin = actuator_pin(g, actuator)
+            on_off_value = time_based_on(unit, value) * 255
+            p[d_id][pin] = str(on_off_value)
     return p

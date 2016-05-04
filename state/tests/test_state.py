@@ -1,3 +1,4 @@
+import datetime
 import unittest
 
 from state.state import *
@@ -20,6 +21,15 @@ class TestCommunicate(unittest.TestCase):
         self.assertEquals('30', actuator_pin(self.g, 'light_1'))
         with self.assertRaises(KeyError):
             actuator_pin(self.g, 'hydrobase')
+
+    def test_controls_dates(self):
+        c = {"dates" : {"start" : "01/01/2016", "end" : "12/31/2016"}}
+        self.assertEquals(2, len(controls_dates(c)))
+        s, e = controls_dates(c)
+        self.assertTrue(s < e)
+        self.assertTrue(type(s) is type(e))
+        c = {"dates" : {}}
+        self.assertEquals(None, controls_dates(c))
 
     def test_controls_time_list(self):
         time = controls_time(self.g)
