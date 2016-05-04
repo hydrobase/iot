@@ -43,9 +43,13 @@ class TestCommunicate(unittest.TestCase):
         self.assertEquals(False, is_odd(2))
         self.assertEquals(True, is_odd(3))
 
-    def test_time_hour_on(self):
-        hour = 4
-        self.assertEquals(False, time_based_on(0, hour))
-        self.assertEquals(True, time_based_on(4, hour))
-        self.assertEquals(True, time_based_on(5, hour))
-        self.assertEquals(False, time_based_on(9, hour))
+    def test_time_based_on(self):
+        # value depends on `current_time()`
+        unit, hour = 'hours', 4
+        tbo = time_based_on(unit, hour)
+        self.assertIsNotNone(tbo)
+        self.assertIsInstance(tbo, bool)
+
+    def test_payload(self):
+        p = payload(self.g)
+        self.assertIsInstance(p, dict)

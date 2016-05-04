@@ -70,7 +70,7 @@ def controls_condition(g):
     """
     return g['controls']['condition']
 
-def current_time(unit='hour'):
+def current_time(unit='hours'):
     """Get the current time in hours or minutes
 
     Parameters
@@ -105,14 +105,14 @@ def is_odd(v):
     """
     return v % 2 != 0
 
-def time_based_on(current, value):
+def time_based_on(unit, value):
     """Determine whether a time-based control
     should be on or off
 
     Parameters
     ----------
-    current : int
-        Current value for a given unit (e.g., 'hours')
+    unit : str
+        {'hours', 'minutes'}
     value : int
         User-defined time-interval value
 
@@ -120,10 +120,35 @@ def time_based_on(current, value):
     -------
     bool
         True if device should be on
+    """
+    current = current_time(unit)
+    quotient = divmod(current, value)[0]
+    return is_odd(quotient)
+
+def payload(g):
+    """Create the payload to publish to PubNub
+
+    Parameters
+    ----------
+    g : dict
+        A growth "object"
+
+    Returns
+    -------
+    p : dict
+        A dict with pin : value pairs for a particular device ID
 
     Notes
     -----
-    `current` and `value` should be in the same units
+    For time-based conditions (i.e., light or water pump),
+    on is represented by a value of 255 and off by a value of 0
     """
-    quotient = divmod(current, value)[0]    
-    return is_odd(quotient)
+    controls = controls_time(g)
+    d_id = device_id(g)
+    p = {d_id : {}}
+    for c in controls:
+        actuator, unit, value = c['actuator'], c['unit'], c['value']
+        pin = actuator_pin(g, actuator)
+        on_off_value = time_based_on(unit, value) * 255
+        p[d_id][pin] = str(on_off_value)
+    return p
