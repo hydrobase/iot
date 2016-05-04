@@ -16,6 +16,11 @@ class TestCommunicate(unittest.TestCase):
         self.assertIsNotNone(g_id)
         self.assertIsInstance(g_id, str)
 
+    def test_actuator_pin(self):
+        self.assertEquals('30', actuator_pin(self.g, 'light_1'))
+        with self.assertRaises(KeyError):
+            actuator_pin(self.g, 'hydrobase')
+
     def test_controls_time_list(self):
         time = controls_time(self.g)
         self.assertIsNotNone(time)

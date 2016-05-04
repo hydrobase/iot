@@ -22,6 +22,24 @@ def device_id(g):
     """
     return g['device_id']
 
+def actuator_pin(g, actuator=None):
+    """Get the actuator pin
+
+    Parameters
+    ----------
+    g : dict
+        A grow "object"
+    actuator : str
+        Actuator name
+
+    Returns
+    -------
+    pin : str
+        Actuator pin
+    """
+    pin = g['actuators'][actuator]
+    return pin
+
 def controls_time(g):
     """Get the time-based control information
 
