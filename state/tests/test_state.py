@@ -29,7 +29,7 @@ class TestCommunicate(unittest.TestCase):
         self.assertTrue(s < e)
         self.assertTrue(type(s) is type(e))
         c = {"dates" : {}}
-        self.assertEquals(None, controls_dates(c))
+        self.assertEquals((None, None), controls_dates(c))
 
     def test_controls_time_list(self):
         time = controls_time(self.g)
@@ -55,8 +55,8 @@ class TestCommunicate(unittest.TestCase):
 
     def test_time_based_on(self):
         # value depends on `current_time()`
-        unit, hour = 'hours', 4
-        tbo = time_based_on(unit, hour)
+        unit, hour, action = 'hours', 4, 'toggle'
+        tbo = time_based_on(unit, hour, action)
         self.assertIsNotNone(tbo)
         self.assertIsInstance(tbo, bool)
 

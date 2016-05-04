@@ -60,7 +60,7 @@ def controls_dates(control):
         end = control['dates']['end']
         return date(start), date(end)
     except:
-        return None
+        return None, None
 
 def controls_time(g):
     """Get the time-based control information
@@ -127,7 +127,7 @@ def is_odd(v):
     """
     return v % 2 != 0
 
-def time_based_on(unit, value):
+def time_based_on(unit, value, action):
     """Determine whether a time-based control
     should be on or off
 
@@ -137,6 +137,8 @@ def time_based_on(unit, value):
         {'hours', 'minutes'}
     value : int
         User-defined time-interval value
+    action : str
+        {'toggle', 'on'}
 
     Returns
     -------
@@ -144,8 +146,11 @@ def time_based_on(unit, value):
         True if device should be on
     """
     current = current_time(unit)
-    quotient = divmod(current, value)[0]
-    return is_odd(quotient)
+    if action == 'toggle':
+        quotient = divmod(current, value)[0]
+        return is_odd(quotient)
+    elif action == 'on':
+        return current < value
 
 def payload(g):
     """Create the payload to publish to PubNub
@@ -167,12 +172,15 @@ def payload(g):
     """
     controls = controls_time(g)
     d_id = device_id(g)
-    p = {d_id : {}}
+    inner = {}
     for c in controls:
         start, end = controls_dates(c)
-        if start <= datetime.now().date() <= end:
-            actuator, unit, value = c['actuator'], c['unit'], c['value']
+        if start and start <= datetime.now().date() <= end:
+            unit, value = c['unit'], c['value']
+            actuator, action = c['actuator'], c['action']
             pin = actuator_pin(g, actuator)
-            on_off_value = time_based_on(unit, value) * 255
-            p[d_id][pin] = str(on_off_value)
-    return p
+            on_off_value = time_based_on(unit, value, action) * 255
+            inner[pin] = str(on_off_value)
+    if inner:
+        p = {d_id : inner}
+        return p
