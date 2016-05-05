@@ -1,13 +1,18 @@
 from datetime import datetime
 import json
-import os
+from configparser import ConfigParser
 from pubnub import Pubnub
 from pymongo import MongoClient
 
 
-mongo_uri = os.environ['MONGO_URI']
+# configuration data
+cfg = ConfigParser()
+cfg.read('creds.cfg')
+mongo_uri = cfg.get('mongo', 'MONGO_URI')
+db_name = cfg.get('mongo', 'DB_NAME')
+# database instance
 client = MongoClient(mongo_uri)
-db = client['analytics-hydrobase']
+db = client[db_name]
 
 def connect_grows():
     """Get all of the grows from the database
@@ -15,8 +20,7 @@ def connect_grows():
     Parameters
     ----------
     db : pymongo.database.Database
-        The database instance; assuming the URI is
-        declared in the `MONGO_URI` environment variable
+        The database instance; assuming the URI is in `creds.cfg`
 
     Returns
     -------
