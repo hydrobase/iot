@@ -195,13 +195,44 @@ def time_based_on(unit, value, action):
     elif action == 'on':
         return current < value
 
+def n_values(obj, keys):
+    """Extract multiple values from `obj`
+
+    Parameters
+    ----------
+    obj : dict
+        A grow or data "object"
+
+    keys : list
+        A list of valid key names
+        Must have at least one element
+
+    Returns
+    -------
+    tuple
+        The values for each key in `args`
+
+    Notes
+    -----
+    Always use tuple unpacking notation (commas); see examples
+
+    Examples
+    --------
+    >>> x = {'one' : 1, 'two' : 2}
+    >>> one, = n_values(x, ['one']) # include the comma even for a single key
+    >>> one, two = n_values(x, ['one', 'two'])
+    """
+    assert isinstance(obj, dict), '`obj` must be type dict'
+    assert isinstance(keys, list), '`keys` must be type list'
+    return tuple(obj[k] for k in keys)
+
 def payload(g):
     """Create the payload to publish to PubNub
 
     Parameters
     ----------
     g : dict
-        A growth "object"
+        A grow "object"
 
     Returns
     -------
@@ -220,8 +251,8 @@ def payload(g):
         start, end = controls_dates(c)
         # assuming no date restrictions if start and end dates not present
         if ((start is None) or (start <= datetime.now().date() <= end)):
-            unit, value = c['unit'], c['value']
-            actuator, action = c['actuator'], c['action']
+            keys = ['actuator', 'unit', 'value', 'action']
+            actuator, unit, value, action = n_values(c, keys)
             pin = actuator_pin(g, actuator)
             on_off_value = time_based_on(unit, value, action) * 255
             inner[pin] = str(on_off_value)

@@ -77,6 +77,20 @@ class TestCommunicate(unittest.TestCase):
         self.assertIsNotNone(tbo)
         self.assertIsInstance(tbo, bool)
 
+    def test_n_values(self):
+        obj = {'one' : 1, 'two' : 2}
+        one, two = n_values(obj, ['one', 'two'])
+        self.assertEquals(1, one)
+        self.assertEquals(2, two)
+        tuple_one = n_values(obj, ['one'])
+        self.assertIsInstance(tuple_one, tuple)
+        with self.assertRaises(KeyError):
+            n_values(obj, ['three'])
+        with self.assertRaises(AssertionError):
+            n_values('not_a_dict', ['one'])
+        with self.assertRaises(AssertionError):
+            n_values(obj, 'one')
+
     def test_payload(self):
         p = payload(self.g)
         self.assertIsInstance(p, dict)
