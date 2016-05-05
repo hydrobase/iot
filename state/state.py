@@ -194,7 +194,8 @@ def payload(g):
     inner = {}
     for c in controls:
         start, end = controls_dates(c)
-        if start and start <= datetime.now().date() <= end:
+        # assuming no date restrictions if start and end dates not present
+        if ((start is None) or (start <= datetime.now().date() <= end)):
             unit, value = c['unit'], c['value']
             actuator, action = c['actuator'], c['action']
             pin = actuator_pin(g, actuator)
