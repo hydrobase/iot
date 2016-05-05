@@ -1,4 +1,6 @@
 import datetime
+import json
+import pymongo
 import unittest
 
 from state.state import *
@@ -6,11 +8,14 @@ from state.state import *
 
 class TestCommunicate(unittest.TestCase):
 
-    g = connect_grows()
+    # static
+    with open('grows.json', 'r') as g:
+        g = json.load(g)
 
-    def test_grows_returns_dict(self):
-        self.assertIsNotNone(self.g)
-        self.assertIsInstance(self.g, dict)
+    def test_grows_returns_cursor(self):
+        grows = connect_grows()
+        self.assertIsNotNone(grows)
+        self.assertIsInstance(grows, pymongo.cursor.Cursor)
 
     def test_device_id_str(self):
         g_id = device_id(self.g)

@@ -1,10 +1,29 @@
 from datetime import datetime
 import json
+import os
+from pubnub import Pubnub
+from pymongo import MongoClient
 
+
+mongo_uri = os.environ['MONGO_URI']
+client = MongoClient(mongo_uri)
+db = client['analytics-hydrobase']
 
 def connect_grows():
-    with open('grows.json', 'r') as g:
-        grows = json.load(g)
+    """Get all of the grows from the database
+
+    Parameters
+    ----------
+    db : pymongo.database.Database
+        The database instance; assuming the URI is
+        declared in the `MONGO_URI` environment variable
+
+    Returns
+    -------
+    grows : pymongo.cursor.Cursor
+        Iterable
+    """
+    grows = db.grows.find()
     return grows
 
 def device_id(g):
