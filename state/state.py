@@ -10,9 +10,18 @@ cfg = ConfigParser()
 cfg.read('creds.cfg')
 mongo_uri = cfg.get('mongo', 'MONGO_URI')
 db_name = cfg.get('mongo', 'DB_NAME')
+publish = cfg.get('pubnub', 'PUBNUB_PUBLISH_KEY')
+subscribe = cfg.get('pubnub', 'PUBNUB_SUBSCRIBE_KEY')
+secret = cfg.get('pubnub', 'PUBNUB_SECRET_KEY')
+auth = cfg.get('pubnub', 'PUBNUB_AUTH_KEY')
+channel_grp = cfg.get('pubnub', 'PUBNUB_CHANNEL_GRP')
 # database instance
 client = MongoClient(mongo_uri)
 db = client[db_name]
+# pubnub instance
+pubnub = Pubnub(publish_key=publish, subscribe_key=subscribe,
+                secret_key=secret, auth_key=auth)
+pubnub.grant(channel_group=channel_grp, auth_key=auth, write=True)
 
 def connect_grows():
     """Get all of the grows from the database
@@ -208,3 +217,10 @@ def payload(g):
     if inner:
         p = {d_id : inner}
         return p
+
+def control_messages(): # pragma: no cover
+    grows = connect_grows()
+    for grow in grows:
+        message = payload(grow)
+        if message:
+            pubnub.publish('admin', message)
