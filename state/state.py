@@ -39,20 +39,31 @@ def connect_grows():
     grows = db.grows.find()
     return grows
 
-def device_id(g):
+def connect_data():
+    with open('data.json', 'r') as d:
+        data = json.load(d)
+    return data
+
+def device_id(obj, obj_type='grow'):
     """Get the device ID
 
     Parameters
     ----------
-    g : dict
-        A grow "object"
+    obj : dict
+        A grow or data "object"
+    obj_type : str
+        {'grow', 'data'}
 
     Returns
     -------
     id : str
         Device id
     """
-    return g['device_id']
+    assert obj_type in ('grow', 'data'), 'Invalid object type'
+    if obj_type == 'grow':
+        return obj['device_id']
+    elif obj_type == 'data':
+        return obj['sender']['device_id']
 
 def actuator_pin(g, actuator=None):
     """Get the actuator pin
@@ -203,7 +214,7 @@ def payload(g):
     on is represented by a value of 255 and off by a value of 0
     """
     controls = controls_time(g)
-    d_id = device_id(g)
+    d_id = device_id(g, 'grow')
     inner = {}
     for c in controls:
         start, end = controls_dates(c)

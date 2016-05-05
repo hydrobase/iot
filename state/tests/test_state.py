@@ -11,16 +11,28 @@ class TestCommunicate(unittest.TestCase):
     # static
     with open('grows.json', 'r') as g:
         g = json.load(g)
+    with open('data.json', 'r') as d:
+        d = json.load(d)
 
     def test_grows_returns_cursor(self):
         grows = connect_grows()
         self.assertIsNotNone(grows)
         self.assertIsInstance(grows, pymongo.cursor.Cursor)
 
+    def test_data_returns_data(self):
+        data = connect_data()
+        self.assertIsNotNone(data)
+        self.assertIsInstance(data, dict)
+
     def test_device_id_str(self):
-        g_id = device_id(self.g)
+        g_id = device_id(self.g, 'grow')
         self.assertIsNotNone(g_id)
         self.assertIsInstance(g_id, str)
+        d_id = device_id(self.d, 'data')
+        self.assertIsNotNone(d_id)
+        self.assertIsInstance(d_id, str)
+        with self.assertRaises(AssertionError):
+            device_id(self.g, 'hydrobase')
 
     def test_actuator_pin(self):
         self.assertEquals('30', actuator_pin(self.g, 'light_1'))
