@@ -19,20 +19,25 @@ class TestCommunicate(unittest.TestCase):
         self.assertIsNotNone(grows)
         self.assertIsInstance(grows, pymongo.cursor.Cursor)
 
-    def test_data_returns_data(self):
-        data = connect_data()
+    def test_data_returns_dict(self):
+        d_id = device_id(self.g)
+        g_name = grow_name(self.g)
+        data = connect_data(d_id, g_name)
         self.assertIsNotNone(data)
         self.assertIsInstance(data, dict)
 
     def test_device_id_str(self):
-        g_id = device_id(self.g, 'grow')
+        g_id = device_id(self.g)
         self.assertIsNotNone(g_id)
         self.assertIsInstance(g_id, str)
-        d_id = device_id(self.d, 'data')
+        d_id = device_id(self.d)
         self.assertIsNotNone(d_id)
         self.assertIsInstance(d_id, str)
-        with self.assertRaises(AssertionError):
-            device_id(self.g, 'hydrobase')
+
+    def test_grow_name(self):
+        g_name = grow_name(self.g)
+        self.assertIsNotNone(g_name)
+        self.assertIsInstance(g_name, str)
 
     def test_actuator_pin(self):
         self.assertEquals('30', actuator_pin(self.g, 'light_1'))
@@ -66,7 +71,7 @@ class TestCommunicate(unittest.TestCase):
         self.assertIsInstance(m, int)
         self.assertTrue(0 <= m <= 59)
 
-    def test_is_even(self):
+    def test_is_odd(self):
         self.assertEquals(False, is_odd(2))
         self.assertEquals(True, is_odd(3))
 
@@ -76,6 +81,10 @@ class TestCommunicate(unittest.TestCase):
         tbo = time_based_on(unit, hour, action)
         self.assertIsNotNone(tbo)
         self.assertIsInstance(tbo, bool)
+
+    def test_condition_based_on(self):
+        self.assertEquals(True, condition_based_on(5, '>', 3))
+        self.assertEquals(False, condition_based_on(5, '<', 3))
 
     def test_n_values(self):
         obj = {'one' : 1, 'two' : 2}
@@ -91,6 +100,12 @@ class TestCommunicate(unittest.TestCase):
         with self.assertRaises(AssertionError):
             n_values(obj, 'one')
 
+    def test_pin_and_value(self):
+        c0 = controls_time(self.g)[0]
+        self.assertIsInstance(pin_and_value(self.g, c0, 'time'), tuple)
+
     def test_payload(self):
-        p = payload(self.g)
-        self.assertIsInstance(p, dict)
+        p_time = payload(self.g, 'time')
+        self.assertIsInstance(p_time, dict)
+        p_cond = payload(self.g, 'condition')
+        self.assertIsInstance(p_cond, dict)
